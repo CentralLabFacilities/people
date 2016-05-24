@@ -602,7 +602,7 @@ public:
         //  continue;
 
         double d = distance(it, leg1);
-        if (((*it)->getLifetime() <= max_second_leg_age_s) &&
+        if (((max_second_leg_age_s == 0) || ((*it)->getLifetime() <= max_second_leg_age_s)) &&
                 ((*it)->other == NULL) && 
                 ((*it)->reliability > leg_reliability_limit_) && 
                 (d < leg_pair_separation_m) && 
@@ -919,58 +919,73 @@ public:
       if (publish_people_ || publish_people_markers_)
       {
         SavedFeature* other = (*sf_iter)->other;
-        if (other != NULL && other < (*sf_iter))
+        
+        double dx,dy,dz;
+        bool isPerson=false;
+        if (other != NULL )
         {
-          double dx = ((*sf_iter)->position_[0] + other->position_[0]) / 2,
-                 dy = ((*sf_iter)->position_[1] + other->position_[1]) / 2,
-                 dz = ((*sf_iter)->position_[2] + other->position_[2]) / 2;
-
-          if (publish_people_)
-          {
-            reliability = reliability * other->reliability;
-            people_msgs::PositionMeasurement pos;
-            pos.header.stamp = (*sf_iter)->time_;
-            pos.header.frame_id = fixed_frame;
-            pos.name = (*sf_iter)->object_id;;
-            pos.object_id = (*sf_iter)->id_ + "|" + other->id_;
-            pos.pos.x = dx;
-            pos.pos.y = dy;
-            pos.pos.z = dz;
-            pos.reliability = reliability;
-            pos.covariance[0] = pow(0.3 / reliability, 2.0);
-            pos.covariance[1] = 0.0;
-            pos.covariance[2] = 0.0;
-            pos.covariance[3] = 0.0;
-            pos.covariance[4] = pow(0.3 / reliability, 2.0);
-            pos.covariance[5] = 0.0;
-            pos.covariance[6] = 0.0;
-            pos.covariance[7] = 0.0;
-            pos.covariance[8] = 10000.0;
-            pos.initialization = 0;
-            people.push_back(pos);
-          }
-
-          if (publish_people_markers_)
-          {
-            visualization_msgs::Marker m;
-            m.header.stamp = (*sf_iter)->time_;
-            m.header.frame_id = fixed_frame;
-            m.ns = "PEOPLE";
-            m.id = i;
-            m.type = m.SPHERE;
-            m.pose.position.x = dx;
-            m.pose.position.y = dy;
-            m.pose.position.z = dz;
-            m.scale.x = .2;
-            m.scale.y = .2;
-            m.scale.z = .2;
-            m.color.a = 1;
-            m.color.g = 1;
-            m.lifetime = ros::Duration(0.5);
-
-            markers_pub_.publish(m);
-          }
+            if(other < (*sf_iter)){ //prevent publishing twice
+                dx = ((*sf_iter)->position_[0] + other->position_[0]) / 2;
+                dy = ((*sf_iter)->position_[1] + other->position_[1]) / 2;
+                dz = ((*sf_iter)->position_[2] + other->position_[2]) / 2;
+                isPerson = true;
+            }
+        } else if(*sf_iter->object_id != ""){ //publish one-legged persons        
+            dx = (*sf_iter)->position_[0];
+            dy = (*sf_iter)->position_[1];
+            dz = (*sf_iter)->position_[2];   
+            isPerson = true;
         }
+        if (publish_people_ && isPerson)
+        {
+          if(other!=NULL) { 
+              reliability = reliability * other->reliability;
+          } else {
+              reliability = reliability * reliability * 2; //penalty for only one leg
+          }
+          people_msgs::PositionMeasurement pos;
+          pos.header.stamp = (*sf_iter)->time_;
+          pos.header.frame_id = fixed_frame;
+          pos.name = (*sf_iter)->object_id;
+          pos.object_id = (*sf_iter)->object_id;
+          pos.pos.x = dx;
+          pos.pos.y = dy;
+          pos.pos.z = dz;
+          pos.reliability = reliability;
+          pos.covariance[0] = pow(0.3 / reliability, 2.0);
+          pos.covariance[1] = 0.0;
+          pos.covariance[2] = 0.0;
+          pos.covariance[3] = 0.0;
+          pos.covariance[4] = pow(0.3 / reliability, 2.0);
+          pos.covariance[5] = 0.0;
+          pos.covariance[6] = 0.0;
+          pos.covariance[7] = 0.0;
+          pos.covariance[8] = 10000.0;
+          pos.initialization = 0;
+          people.push_back(pos);
+        }
+
+        if (publish_people_markers_ && isPerson)
+        {
+          visualization_msgs::Marker m;
+          m.header.stamp = (*sf_iter)->time_;
+          m.header.frame_id = fixed_frame;
+          m.ns = "PEOPLE";
+          m.id = i;
+          m.type = m.SPHERE;
+          m.pose.position.x = dx;
+          m.pose.position.y = dy;
+          m.pose.position.z = dz;
+          m.scale.x = .2;
+          m.scale.y = .2;
+          m.scale.z = .2;
+          m.color.a = 1;
+          m.color.g = 1;
+          m.lifetime = ros::Duration(0.5);
+
+          markers_pub_.publish(m);
+        }
+        
       }
     }
 
