@@ -602,8 +602,11 @@ public:
         //  continue;
 
         double d = distance(it, leg1);
-        if (((*it)->getLifetime() <= max_second_leg_age_s)
-            && (d < closest_dist))
+        if (((*it)->getLifetime() <= max_second_leg_age_s) &&
+                ((*it)->other == NULL) && 
+                ((*it)->reliability > leg_reliability_limit_) && 
+                (d < leg_pair_separation_m) && 
+                (d < closest_dist) )
         {
           closest_dist = d;
           best = it;
@@ -623,7 +626,6 @@ public:
         }
         else
         {
-            //TODO: check reliability and separation limits
           (*leg1)->other = *leg2;
           (*leg2)->other = *leg1;
         }
