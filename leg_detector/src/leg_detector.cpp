@@ -930,7 +930,8 @@ public:
                 dz = ((*sf_iter)->position_[2] + other->position_[2]) / 2;
                 isPerson = true;
             }
-        } else if(*sf_iter->object_id != ""){ //publish one-legged persons        
+        } 
+        else if((*sf_iter)->object_id != ""){ //publish one-legged persons        
             dx = (*sf_iter)->position_[0];
             dy = (*sf_iter)->position_[1];
             dz = (*sf_iter)->position_[2];   
