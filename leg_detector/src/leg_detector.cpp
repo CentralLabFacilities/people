@@ -597,8 +597,9 @@ public:
           break;
         }
 
-        if ((*it)->object_id != "")
-          continue;
+        //removed this check to allow that a person with only one tracked leg to get the leg back
+        //if ((*it)->object_id != "")
+        //  continue;
 
         double d = distance(it, leg1);
         if (((*it)->getLifetime() <= max_second_leg_age_s)
@@ -622,6 +623,7 @@ public:
         }
         else
         {
+            //TODO: check reliability and separation limits
           (*leg1)->other = *leg2;
           (*leg2)->other = *leg1;
         }
@@ -638,8 +640,7 @@ public:
     for (;;)
     {
       list<SavedFeature*>::iterator best1 = end, best2 = end;
-      double closest_dist = leg_pair_separation_m;
-
+      
       for (leg1 = begin; leg1 != end; ++leg1)
       {
         // If this leg has an id or low reliability, skip
@@ -653,7 +654,7 @@ public:
               || ((*leg2)->getReliability() < leg_reliability_limit_)
               || (leg1 == leg2)) continue;
           double d = distance(leg1, leg2);
-          if (d < closest_dist)
+          if (d < leg_pair_separation_m)
           {
             best1 = leg1;
             best2 = leg2;
@@ -677,9 +678,9 @@ public:
     }
   }
 
-  void laserCallback(const sensor_msgs::LaserScan::ConstPtr& scan)
+  void laserCallback(sensor_msgs::LaserScan::ConstPtr scan)
   {
-    ScanProcessor processor(*scan, mask_);
+    ScanProcessor processor(scan, mask_);
 
     processor.splitConnected(connected_thresh_);
     processor.removeLessThan(5);
@@ -722,7 +723,7 @@ public:
          i != processor.getClusters().end();
          i++)
     {
-      vector<float> f = calcLegFeatures(*i, *scan);
+      vector<float> f = calcLegFeatures(*i, scan);
 
       for (int k = 0; k < feat_count_; k++)
         tmp_mat->data.fl[k] = (float)(f[k]);
@@ -997,4 +998,3 @@ int main(int argc, char **argv)
 
   return 0;
 }
-

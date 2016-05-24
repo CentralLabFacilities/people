@@ -69,7 +69,7 @@ public:
   float x;
   float y;
 
-  static Sample* Extract(int ind, const sensor_msgs::LaserScan& scan);
+  static Sample* Extract(int ind, const sensor_msgs::LaserScan::ConstPtr scan);
 
 private:
   Sample() {};
@@ -125,7 +125,7 @@ public:
     filled = false;
   }
 
-  void addScan(sensor_msgs::LaserScan& scan);
+  void addScan(sensor_msgs::LaserScan::ConstPtr scan);
 
   bool hasSample(Sample* s, float thresh);
 };
@@ -144,7 +144,7 @@ public:
     return clusters_;
   }
 
-  ScanProcessor(const sensor_msgs::LaserScan& scan, ScanMask& mask_, float mask_threshold = 0.03);
+  ScanProcessor(const sensor_msgs::LaserScan::ConstPtr scan, ScanMask& mask_, float mask_threshold = 0.03);
 
   ~ScanProcessor();
 

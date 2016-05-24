@@ -40,6 +40,6 @@
 
 // TODO: Should remove scan dependency from here.
 // Only used for jump distance
-std::vector<float> calcLegFeatures(laser_processor::SampleSet* cluster, const sensor_msgs::LaserScan& scan);
+std::vector<float> calcLegFeatures(laser_processor::SampleSet* cluster, sensor_msgs::LaserScan::ConstPtr scan);
 
 #endif

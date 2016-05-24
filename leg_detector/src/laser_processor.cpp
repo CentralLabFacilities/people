@@ -40,15 +40,15 @@ using namespace ros;
 using namespace std;
 using namespace laser_processor;
 
-Sample* Sample::Extract(int ind, const sensor_msgs::LaserScan& scan)
+Sample* Sample::Extract(int ind, const sensor_msgs::LaserScan::ConstPtr scan)
 {
   Sample* s = new Sample();
 
   s->index = ind;
-  s->range = scan.ranges[ind];
-  s->x = cos(scan.angle_min + ind * scan.angle_increment) * s->range;
-  s->y = sin(scan.angle_min + ind * scan.angle_increment) * s->range;
-  if (s->range > scan.range_min && s->range < scan.range_max)
+  s->range = scan->ranges[ind];
+  s->x = cos(scan->angle_min + ind * scan->angle_increment) * s->range;
+  s->y = sin(scan->angle_min + ind * scan->angle_increment) * s->range;
+  if (s->range > scan->range_min && s->range < scan->range_max)
     return s;
   else
   {
@@ -108,23 +108,23 @@ tf::Point SampleSet::center()
 }
 
 
-void ScanMask::addScan(sensor_msgs::LaserScan& scan)
+void ScanMask::addScan(sensor_msgs::LaserScan::ConstPtr scan)
 {
   if (!filled)
   {
-    angle_min = scan.angle_min;
-    angle_max = scan.angle_max;
-    size      = scan.ranges.size();
+    angle_min = scan->angle_min;
+    angle_max = scan->angle_max;
+    size      = scan->ranges.size();
     filled    = true;
   }
-  else if (angle_min != scan.angle_min     ||
-           angle_max != scan.angle_max     ||
-           size      != scan.ranges.size())
+  else if (angle_min != scan->angle_min     ||
+           angle_max != scan->angle_max     ||
+           size      != scan->ranges.size())
   {
     throw std::runtime_error("laser_scan::ScanMask::addScan: inconsistantly sized scans added to mask");
   }
 
-  for (uint32_t i = 0; i < scan.ranges.size(); i++)
+  for (uint32_t i = 0; i < scan->ranges.size(); i++)
   {
     Sample* s = Sample::Extract(i, scan);
 
@@ -168,13 +168,13 @@ bool ScanMask::hasSample(Sample* s, float thresh)
 
 
 
-ScanProcessor::ScanProcessor(const sensor_msgs::LaserScan& scan, ScanMask& mask_, float mask_threshold)
+ScanProcessor::ScanProcessor(const sensor_msgs::LaserScan::ConstPtr scan, ScanMask& mask_, float mask_threshold)
 {
-  scan_ = scan;
+  scan_ = *scan;
 
   SampleSet* cluster = new SampleSet;
 
-  for (uint32_t i = 0; i < scan.ranges.size(); i++)
+  for (uint32_t i = 0; i < scan->ranges.size(); i++)
   {
     Sample* s = Sample::Extract(i, scan);
 

@@ -26,6 +26,7 @@ find_package(catkin REQUIRED COMPONENTS
   people_tracking_filter
   image_geometry
   dynamic_reconfigure
+  rosbag
 )
 
 ## dynamic reconfigure config
@@ -35,7 +36,7 @@ generate_dynamic_reconfigure_options(
 
 ## Specify additional locations of header files
 include_directories(
-  include ${catkin_INCLUDE_DIRS}
+  include ${catkin_INCLUDE_DIRS} ./include/leg_detector
 )
 
 catkin_package(INCLUDE_DIRS include
@@ -46,12 +47,21 @@ add_executable(leg_detector
                src/laser_processor.cpp
                src/leg_detector.cpp 
                src/calc_leg_features.cpp)
+               
+add_executable(train_leg_detector 
+               src/train_leg_detector.cpp
+src/laser_processor.cpp
+src/calc_leg_features.cpp)
 
 ## Add cmake target dependencies of the executable/library
 add_dependencies(leg_detector people_msgs_gencpp ${${PROJECT_NAME}_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(leg_detector
+   ${catkin_LIBRARIES} ${BFL_LIBRARIES} ${BULLET_LIBRARIES}
+)
+
+target_link_libraries(train_leg_detector
    ${catkin_LIBRARIES} ${BFL_LIBRARIES} ${BULLET_LIBRARIES}
 )
 

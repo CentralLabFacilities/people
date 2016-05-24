@@ -40,7 +40,7 @@
 using namespace laser_processor;
 using namespace std;
 
-vector<float> calcLegFeatures(SampleSet* cluster, const sensor_msgs::LaserScan& scan)
+vector<float> calcLegFeatures(SampleSet* cluster, sensor_msgs::LaserScan::ConstPtr scan)
 {
 
   vector<float> features;
@@ -116,7 +116,7 @@ vector<float> calcLegFeatures(SampleSet* cluster, const sensor_msgs::LaserScan& 
 
   }
 
-  if (next_ind < (int)scan.ranges.size())
+  if (next_ind < (int)scan->ranges.size())
   {
     Sample* next = Sample::Extract(next_ind, scan);
     if (next)
