@@ -280,7 +280,7 @@ public:
     feat_count_(0),
     next_p_id_(0),
     people_sub_(nh_, "people_tracker_filter", 10),
-    laser_sub_(nh_, "base_scan", 10),
+    laser_sub_(nh_, "scan_merged", 10),
     people_notifier_(people_sub_, tfl_, fixed_frame, 10),
     laser_notifier_(laser_sub_, tfl_, fixed_frame, 10)
   {
