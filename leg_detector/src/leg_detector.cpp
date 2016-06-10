@@ -263,7 +263,7 @@ public:
     feat_count_(0),
     next_p_id_(0),
     people_sub_(nh_, "people_tracker_filter", 10),
-    laser_sub_(nh_, "scan_merged", 10),
+    laser_sub_(nh_, "scan_merged ", 10),
     people_notifier_(people_sub_, tfl_, fixed_frame, 10),
     laser_notifier_(laser_sub_, tfl_, fixed_frame, 10) {
         if (g_argc > 1) {
@@ -521,7 +521,7 @@ public:
         list<SavedFeature*>::iterator begin = saved_features_.begin();
         list<SavedFeature*>::iterator end = saved_features_.end();
         list<SavedFeature*>::iterator leg1, leg2, best, it;
-
+        
         for (leg1 = begin; leg1 != end; ++leg1) {
             // If this leg has no id, skip
             if ((*leg1)->object_id == "")
@@ -556,9 +556,7 @@ public:
 
             if (leg2 != end) {
                 double dist_between_legs = distance(leg1, leg2);
-                if ((dist_between_legs > leg_pair_separation_m) &&
-                        (((*leg1)->reliability < leg_reliability_limit_) ||
-                        ((*leg2)->reliability < leg_reliability_limit_))) {
+                if ((dist_between_legs > leg_pair_separation_m)) { //also check reliability?
                     (*leg1)->object_id = "";
                     (*leg1)->other = NULL;
                     (*leg2)->object_id = "";
