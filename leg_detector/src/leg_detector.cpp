@@ -263,7 +263,7 @@ public:
     feat_count_(0),
     next_p_id_(0),
     people_sub_(nh_, "people_tracker_filter", 10),
-    laser_sub_(nh_, "scan_merged ", 10),
+    laser_sub_(nh_, "/scan_merged", 10),
     people_notifier_(people_sub_, tfl_, fixed_frame, 10),
     laser_notifier_(laser_sub_, tfl_, fixed_frame, 10) {
         if (g_argc > 1) {
@@ -571,6 +571,8 @@ public:
                 (*best)->object_id = (*leg1)->object_id;
                 (*leg1)->other = *best;
                 (*best)->other = *leg1;
+            } else {
+                //leg1 is single leg with id
             }
         }
 
