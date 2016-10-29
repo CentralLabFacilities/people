@@ -1,8 +1,13 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(leg_detector)
 
+find_package(OpenCV REQUIRED)
+include_directories( 
+	include ${OpenCV_INCLUDE_DIRS}
+)
+
 # look for bfl (Bayesian Filtering Library)
-find_package(PkgConfig REQUIRED)
+find_package(PkgConfig  REQUIRED)
 pkg_check_modules(BFL REQUIRED orocos-bfl)
 
 include_directories(${BFL_INCLUDE_DIRS})
@@ -58,11 +63,11 @@ add_dependencies(leg_detector people_msgs_gencpp ${${PROJECT_NAME}_EXPORTED_TARG
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(leg_detector
-   ${catkin_LIBRARIES} ${BFL_LIBRARIES} ${BULLET_LIBRARIES}
+   ${catkin_LIBRARIES} ${BFL_LIBRARIES} ${BULLET_LIBRARIES} ${OpenCV_LIBRARIES}
 )
 
 target_link_libraries(train_leg_detector
-   ${catkin_LIBRARIES} ${BFL_LIBRARIES} ${BULLET_LIBRARIES}
+   ${catkin_LIBRARIES} ${BFL_LIBRARIES} ${BULLET_LIBRARIES} ${OpenCV_LIBRARIES}
 )
 
 install(TARGETS
