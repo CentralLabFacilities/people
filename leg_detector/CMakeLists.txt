@@ -1,7 +1,10 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(leg_detector)
 
-find_package(OpenCV2 REQUIRED)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmakemodules/")
+message("cmakemodulepath: " ${CMAKE_MODULE_PATH})
+
+find_package(OpenCV 2.4.10.1 EXACT REQUIRED)
 include_directories( 
 	include ${OpenCV_INCLUDE_DIRS}
 )
