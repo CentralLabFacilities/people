@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(leg_detector)
 
-find_package(OpenCV 2 REQUIRED)
+find_package(OpenCV2 REQUIRED)
 include_directories( 
 	include ${OpenCV_INCLUDE_DIRS}
 )
