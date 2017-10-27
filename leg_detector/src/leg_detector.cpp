@@ -680,9 +680,9 @@ public:
     }
   }
 
-  void laserCallback(const sensor_msgs::LaserScan::ConstPtr& scan)
+  void laserCallback(const sensor_msgs::LaserScan::ConstPtr scan)
   {
-    ScanProcessor processor(*scan, mask_);
+    ScanProcessor processor(scan, mask_);
 
     processor.splitConnected(connected_thresh_);
     processor.removeLessThan(5);
@@ -725,7 +725,7 @@ public:
          i != processor.getClusters().end();
          i++)
     {
-      vector<float> f = calcLegFeatures(*i, *scan);
+      vector<float> f = calcLegFeatures(*i, scan);
 
       for (int k = 0; k < feat_count_; k++)
         tmp_mat.data[k] = (float)(f[k]);
