@@ -51,10 +51,10 @@ add_executable(leg_detector
                src/leg_detector.cpp
                src/calc_leg_features.cpp)
                
-add_executable(train_leg_detector 
-               src/train_leg_detector.cpp
-src/laser_processor.cpp
-src/calc_leg_features.cpp)
+#add_executable(train_leg_detector 
+#               src/train_leg_detector.cpp
+#src/laser_processor.cpp
+#src/calc_leg_features.cpp)
 
 ## Add cmake target dependencies of the executable/library
 add_dependencies(leg_detector ${${PROJECT_NAME}_EXPORTED_TARGETS})
@@ -64,9 +64,9 @@ target_link_libraries(leg_detector
    ${catkin_LIBRARIES} ${BFL_LIBRARIES} ${BULLET_LIBRARIES}
 )
 
-target_link_libraries(train_leg_detector
-   ${catkin_LIBRARIES} ${BFL_LIBRARIES} ${BULLET_LIBRARIES}
-)
+#target_link_libraries(train_leg_detector
+#   ${catkin_LIBRARIES} ${BFL_LIBRARIES} ${BULLET_LIBRARIES}
+#)
 
 install(TARGETS
     leg_detector
