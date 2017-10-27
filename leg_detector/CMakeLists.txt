@@ -51,9 +51,9 @@ catkin_package(INCLUDE_DIRS include
   CATKIN_DEPENDS people_msgs sensor_msgs std_msgs geometry_msgs visualization_msgs)
 
 ## Declare a cpp executable
-add_executable(leg_detector 
+add_executable(leg_detector
                src/laser_processor.cpp
-               src/leg_detector.cpp 
+               src/leg_detector.cpp
                src/calc_leg_features.cpp)
                
 add_executable(train_leg_detector 
@@ -62,7 +62,7 @@ src/laser_processor.cpp
 src/calc_leg_features.cpp)
 
 ## Add cmake target dependencies of the executable/library
-add_dependencies(leg_detector people_msgs_gencpp ${${PROJECT_NAME}_EXPORTED_TARGETS})
+add_dependencies(leg_detector ${${PROJECT_NAME}_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(leg_detector
