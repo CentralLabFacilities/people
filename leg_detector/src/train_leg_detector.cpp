@@ -56,6 +56,13 @@ enum LoadType {
     LOADING_NONE, LOADING_POS, LOADING_NEG, LOADING_TEST
 };
 
+inline cv::TermCriteria TC(int iters, double eps)
+{
+    return cv::TermCriteria(cv::TermCriteria::MAX_ITER + (eps > 0 ? cv::TermCriteria::EPS : 0), iters, eps);
+}
+
+
+
 class TrainLegDetector {
 public:
     ScanMask mask_;
@@ -65,8 +72,7 @@ public:
     vector< vector<float> > neg_data_;
     vector< vector<float> > test_data_;
 
-    CvRTrees forest;
-
+    cv::Ptr<cv::ml::RTrees> forest;
     float connected_thresh_;
 
     int feat_count_;
@@ -159,14 +165,11 @@ public:
                                 test_data_.push_back(calcLegFeatures(*i, s));
                         }
                     }
-                    //          p.addHandler<sensor_msgs::LaserScan>(string("*"), &TrainLegDetector::loadCb, this, &test_data_);
                     break;
                 default:
                     break;
             }
             bag.close();
-            //        while (bag.nextMsg())
-            //         {}
 
         }
     }
@@ -188,94 +191,89 @@ public:
 //    }
 
     void train() {
-        printf("1");
-        cout << "1";
+
         int sample_size = pos_data_.size() + neg_data_.size();
-        printf("2");
         feat_count_ = pos_data_[0].size();
 
-        printf("df");
-        CvMat* cv_data = cvCreateMat(sample_size, feat_count_, CV_32FC1);
-        CvMat* cv_resp = cvCreateMat(sample_size, 1, CV_32S);
+        cv::Mat cv_data = cv::Mat(sample_size, feat_count_, CV_32F);
+        cv::Mat cv_resp = cv::Mat(sample_size, 1, CV_32S);
 
-        // Put positive data in opencv format.
-        int j = 0;
-        for (vector< vector<float> >::iterator i = pos_data_.begin();
-                i != pos_data_.end();
-                i++) {
-            float* data_row = (float*) (cv_data->data.ptr + cv_data->step * j);
-            for (int k = 0; k < feat_count_; k++)
-                data_row[k] = (*i)[k];
 
-            cv_resp->data.i[j] = 1;
-            j++;
+        for (size_t i = 0; i < pos_data_.size(); i++) {
+            for (size_t j = 0; j < pos_data_[i].size(); j++) {
+                cv_data.at<float>(i,j) = pos_data_[i][j];
+            }
+            cv_resp.at<int>(i) = 1;
         }
 
-        // Put negative data in opencv format.
-        for (vector< vector<float> >::iterator i = neg_data_.begin();
-                i != neg_data_.end();
-                i++) {
-            float* data_row = (float*) (cv_data->data.ptr + cv_data->step * j);
-            for (int k = 0; k < feat_count_; k++)
-                data_row[k] = (*i)[k];
-
-            cv_resp->data.i[j] = -1;
-            j++;
+        for (size_t i = 0; i < neg_data_.size(); i++) {
+            for (size_t j = 0; j < neg_data_[i].size(); j++) {
+                cv_data.at<float>(pos_data_.size() + i ,j) = neg_data_[i][j];
+            }
+            cv_resp.at<int>(pos_data_.size() + i) = -1;
         }
 
-        CvMat* var_type = cvCreateMat(1, feat_count_ + 1, CV_8U);
-        cvSet(var_type, cvScalarAll(CV_VAR_ORDERED));
-        cvSetReal1D(var_type, feat_count_, CV_VAR_CATEGORICAL);
+        cv::Ptr<cv::ml::TrainData> tdata;
 
-        float priors[] = {1.0, 1.0};
+        cv::Mat sample_idx = cv::Mat::zeros( 1, cv_data.rows, CV_8U );
+        cv::Mat train_samples = sample_idx.colRange(0, sample_size);
+        train_samples.setTo(cv::Scalar::all(1));
 
-        CvRTParams fparam(8, 20, 0, false, 10, priors, false, 5, 50, 0.001f, CV_TERMCRIT_ITER);
-        fparam.term_crit = cvTermCriteria(CV_TERMCRIT_ITER, 100, 0.1);
+        int nvars = cv_data.cols;
+        cv::Mat var_type( nvars + 1, 1, CV_8U );
+        var_type.setTo(cv::Scalar::all(cv::ml::VAR_ORDERED));
+        var_type.at<uchar>(nvars) = cv::ml::VAR_CATEGORICAL;
 
-        forest.train(cv_data, CV_ROW_SAMPLE, cv_resp, 0, 0, var_type, 0,
-                fparam);
+        tdata = cv::ml::TrainData::create(cv_data, cv::ml::ROW_SAMPLE, cv_resp, cv::noArray(), sample_idx, cv::noArray(), var_type);
 
+        forest = cv::ml::RTrees::create();
+        forest->setMaxDepth(10);
+        forest->setMinSampleCount(10);
+        forest->setRegressionAccuracy(0);
+        forest->setUseSurrogates(false);
+        forest->setMaxCategories(15);
+        forest->setPriors(cv::Mat());
+        forest->setCalculateVarImportance(true);
+        forest->setActiveVarCount(4);
+        forest->setTermCriteria(TC(100,0.01f));
+        forest->train(tdata);
 
-        cvReleaseMat(&cv_data);
-        cvReleaseMat(&cv_resp);
-        cvReleaseMat(&var_type);
     }
 
     void test() {
-        CvMat* tmp_mat = cvCreateMat(1, feat_count_, CV_32FC1);
+        cv::Mat tmp_mat = cv::Mat(1, feat_count_, CV_32F);
 
         int pos_right = 0;
         int pos_total = 0;
-        for (vector< vector<float> >::iterator i = pos_data_.begin();
-                i != pos_data_.end();
-                i++) {
-            for (int k = 0; k < feat_count_; k++)
-                tmp_mat->data.fl[k] = (float) ((*i)[k]);
-            if (forest.predict(tmp_mat) > 0)
+        for (size_t i = 0; i < pos_data_.size(); i++) {
+            for (size_t j = 0; j < pos_data_[i].size(); j++) {
+                tmp_mat.at<float>(j) = pos_data_[i][j];
+            }
+            if (forest->predict(tmp_mat) > 0)
                 pos_right++;
             pos_total++;
         }
 
         int neg_right = 0;
         int neg_total = 0;
-        for (vector< vector<float> >::iterator i = neg_data_.begin();
-                i != neg_data_.end();
-                i++) {
-            for (int k = 0; k < feat_count_; k++)
-                tmp_mat->data.fl[k] = (float) ((*i)[k]);
-            if (forest.predict(tmp_mat) < 0)
+        for (size_t i = 0; i < neg_data_.size(); i++) {
+            for (size_t j = 0; j < neg_data_[i].size(); j++) {
+                tmp_mat.at<float>(j) = neg_data_[i][j];
+            }
+            if (forest->predict(tmp_mat) < 0)
                 neg_right++;
             neg_total++;
         }
 
+
         int test_right = 0;
         int test_total = 0;
-        for (vector< vector<float> >::iterator i = test_data_.begin();
-                i != test_data_.end();
-                i++) {
-            for (int k = 0; k < feat_count_; k++)
-                tmp_mat->data.fl[k] = (float) ((*i)[k]);
-            if (forest.predict(tmp_mat) > 0)
+        cout << test_data_.size() << endl;
+        for (size_t i = 0; i < test_data_.size(); i++) {
+            for (size_t j = 0; j < test_data_[i].size(); j++) {
+                tmp_mat.at<float>(j) = test_data_[i][j];
+            }
+            if (forest->predict(tmp_mat) > 0)
                 test_right++;
             test_total++;
         }
@@ -284,12 +282,10 @@ public:
         printf(" Neg train set: %d/%d %g\n", neg_right, neg_total, (float) (neg_right) / neg_total);
         printf(" Test set:      %d/%d %g\n", test_right, test_total, (float) (test_right) / test_total);
 
-        cvReleaseMat(&tmp_mat);
-
     }
 
     void save(char* file) {
-        forest.save(file);
+        forest->save(file);
     }
 };
 

@@ -720,6 +720,7 @@ public:
     // Detection step: build up the set of "candidate" clusters
     // For each candidate, find the closest tracker (within threshold) and add to the match list
     // If no tracker is found, start a new one
+
     multiset<MatchedFeature> matches;
     for (list<SampleSet*>::iterator i = processor.getClusters().begin();
          i != processor.getClusters().end();
@@ -735,6 +736,7 @@ public:
       // substitute.
       float probability = forest->predict(tmp_mat, cv::noArray(), cv::ml::RTrees::PREDICT_SUM) /
                           forest->getRoots().size();
+
       Stamped<Point> loc((*i)->center(), scan->header.stamp, scan->header.frame_id);
       try
       {
