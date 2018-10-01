@@ -56,13 +56,6 @@ enum LoadType {
     LOADING_NONE, LOADING_POS, LOADING_NEG, LOADING_TEST
 };
 
-inline cv::TermCriteria TC(int iters, double eps)
-{
-    return cv::TermCriteria(cv::TermCriteria::MAX_ITER + (eps > 0 ? cv::TermCriteria::EPS : 0), iters, eps);
-}
-
-
-
 class TrainLegDetector {
 public:
     ScanMask mask_;
@@ -210,7 +203,7 @@ public:
             for (size_t j = 0; j < neg_data_[i].size(); j++) {
                 cv_data.at<float>(pos_data_.size() + i ,j) = neg_data_[i][j];
             }
-            cv_resp.at<int>(pos_data_.size() + i) = -1;
+            cv_resp.at<int>(pos_data_.size() + i) = 0;
         }
 
         cv::Ptr<cv::ml::TrainData> tdata;
@@ -225,17 +218,18 @@ public:
         var_type.at<uchar>(nvars) = cv::ml::VAR_CATEGORICAL;
 
         tdata = cv::ml::TrainData::create(cv_data, cv::ml::ROW_SAMPLE, cv_resp, cv::noArray(), sample_idx, cv::noArray(), var_type);
+        cv::Mat priors = (cv::Mat_<float>(2,1) << 1.0, 1.0);
 
         forest = cv::ml::RTrees::create();
-        forest->setMaxDepth(10);
-        forest->setMinSampleCount(10);
+        forest->setMaxDepth(8);
+        forest->setMinSampleCount(20);
         forest->setRegressionAccuracy(0);
         forest->setUseSurrogates(false);
-        forest->setMaxCategories(15);
-        forest->setPriors(cv::Mat());
-        forest->setCalculateVarImportance(true);
-        forest->setActiveVarCount(4);
-        forest->setTermCriteria(TC(100,0.01f));
+        forest->setMaxCategories(10);
+        forest->setPriors(priors);
+        forest->setCalculateVarImportance(false);
+        forest->setActiveVarCount(5);
+        forest->setTermCriteria(cv::TermCriteria(CV_TERMCRIT_ITER,100,0.1));
         forest->train(tdata);
 
     }
@@ -260,7 +254,7 @@ public:
             for (size_t j = 0; j < neg_data_[i].size(); j++) {
                 tmp_mat.at<float>(j) = neg_data_[i][j];
             }
-            if (forest->predict(tmp_mat) < 0)
+            if (forest->predict(tmp_mat) == 0)
                 neg_right++;
             neg_total++;
         }

@@ -71,7 +71,7 @@ static double max_second_leg_age_s     = 2.0;
 static double max_track_jump_m         = 1.0;
 static double max_meas_jump_m          = 0.75; // 1.0
 static double leg_pair_separation_m    = 1.0;
-static string fixed_frame              = "odom_combined";
+static string fixed_frame              = "base_link";
 
 static double kal_p = 4, kal_q = .002, kal_r = 10;
 static bool use_filter = true;
@@ -734,6 +734,7 @@ public:
       // Probability is the fuzzy measure of the probability that the second element should be chosen,
       // in opencv2 RTrees had a method predict_prob, but that disapeared in opencv3, this is the
       // substitute.
+
       float probability = forest->predict(tmp_mat, cv::noArray(), cv::ml::RTrees::PREDICT_SUM) /
                           forest->getRoots().size();
 
