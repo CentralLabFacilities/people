@@ -75,7 +75,7 @@ install(TARGETS
     DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
-install(FILES config/trained_leg_detector.yaml config/mergedForest.yaml config/bigDataSet_Tree.yaml
+install(DIRECTORY config/
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/config
 )
 
