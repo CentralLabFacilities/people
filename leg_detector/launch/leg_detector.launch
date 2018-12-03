@@ -1,6 +1,10 @@
 <launch>
-  <node pkg="leg_detector" type="leg_detector" name="leg_detector" args="scan:=scan $(find leg_detector)/config/opencv3_classifier.yaml" output="screen">
-  <param name="fixed_frame" value="base_link" />
+  <arg name="scan" default="/scan" />
+  <arg name="fixed_frame" default="base_link" />
+  
+  <node pkg="leg_detector" type="leg_detector" name="leg_detector" args="$(find leg_detector)/config/opencv3_classifier.yaml" output="screen">
+    <param name="fixed_frame" value="$(arg fixed_frame)" />
+    <param name="scan" value="$(arg scan)" />
   </node>
 </launch>
 
