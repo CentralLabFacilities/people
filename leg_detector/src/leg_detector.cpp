@@ -71,7 +71,7 @@ static double max_second_leg_age_s = 2.0;
 static double max_track_jump_m = 1.0;
 static double max_meas_jump_m = 0.75; // 1.0
 static double leg_pair_separation_m = 1.0;
-static string fixed_frame = "odom";
+static string fixed_frame = "base_link";
 
 static double kal_p = 4, kal_q = .002, kal_r = 10;
 static bool use_filter = true;
@@ -263,7 +263,7 @@ public:
     feat_count_(0),
     next_p_id_(0),
     people_sub_(nh_, "people_tracker_filter", 10),
-    laser_sub_(nh_, "/scan_merged", 10),
+    laser_sub_(nh_, "/scan_clf", 10),
     people_notifier_(people_sub_, tfl_, fixed_frame, 10),
     laser_notifier_(laser_sub_, tfl_, fixed_frame, 10) {
         if (g_argc > 1) {
