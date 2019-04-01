@@ -685,7 +685,7 @@ public:
     ScanProcessor processor(scan, mask_);
 
     processor.splitConnected(connected_thresh_);
-    processor.removeLessThan(5);
+    processor.removeLessThan(min_points_per_group);
 
     cv::Mat tmp_mat = cv::Mat(1, feat_count_, CV_32FC1);
 
