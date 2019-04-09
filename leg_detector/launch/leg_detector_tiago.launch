@@ -5,7 +5,7 @@
   <node pkg="laser_filters" type="scan_to_scan_filter_chain" respawn="true"
       name="laser_filter">
     <rosparam command="load" file="$(find map_laser)/filters.yaml" />
-    <remap from="scan" to="scan_raw" />
+    <remap from="scan" to="scan_clf" />
   </node>
   <node pkg="map_laser" type="filter.py" name="map_laser_filter" respawn="true" output="screen"/>
 
@@ -13,5 +13,12 @@
     <param name="fixed_frame" value="$(arg fixed_frame)" />
     <remap from="scan" to="base_scan_filter" />
   </node>
+
+  <!-- To PoseArray -->
+  <include file="$(find detector_msg_to_pose_array)/launch/to_pose_array.launch">
+      <arg name="machine" value="localhost"/>
+      <arg name="user" value=""/>
+  </include>
+
 </launch>
 
