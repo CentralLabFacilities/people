@@ -1,0 +1,18 @@
+connection_threshold: 0.045
+fixed_frame: /base_link
+kalman_on: 1
+kalman_p: 4.0
+kalman_q: 0.002
+kalman_r: 10.0
+leg_pair_separation: 0.65
+leg_reliability_limit: 0.7
+max_meas_jump: 0.1
+max_second_leg_age: 2.0
+max_track_jump: 2.0
+min_points_per_group: 4
+no_observation_timeout: 1.0
+publish_leg_markers: true
+publish_legs: true
+publish_people: true
+publish_people_markers: true
+

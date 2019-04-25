@@ -1,0 +1,23 @@
+scan_filter_chain:
+# Filter extreme points as they cause major shadows
+- name: angle
+  type: laser_filters/LaserScanAngularBoundsFilter
+  params:
+    lower_angle: -1.5
+    upper_angle: 1.5
+
+- name: shadows
+  type: laser_filters/ScanShadowsFilter
+  params:
+    min_angle: 0
+    max_angle: 170
+    neighbors: 2 #3
+    window: 2
+
+- name: range
+  type: laser_filters/LaserScanRangeFilter
+  params:
+    lower_threshold: 0.3
+    upper_threshold: 25.0
+    lower_replacement_value: -.inf
+    upper_replacement_value: .inf
