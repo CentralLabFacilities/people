@@ -8,7 +8,7 @@
     <remap from="scan" to="scan_raw" />
     <remap from="scan_filtered" to="scan_legdetect" />
   </node>
-  <node pkg="map_laser" type="filter.py" name="map_laser_filter" respawn="true" output="screen"/>
+  <!--<node pkg="map_laser" type="filter.py" name="map_laser_filter" respawn="true" output="screen"/>-->
 
   <node pkg="leg_detector" type="leg_detector" name="leg_detector" args="$(find leg_detector)/config/tiagoDataSet_Tree.yaml" output="screen">
     <rosparam command="load" file="$(find leg_detector)/config/leg_detector_tiago.yaml" />
