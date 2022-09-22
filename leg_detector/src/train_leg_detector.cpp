@@ -32,12 +32,11 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#include "laser_processor.h"
-#include "calc_leg_features.h"
+#include "leg_detector/laser_processor.h"
+#include "leg_detector/calc_leg_features.h"
 
-#include "opencv/cxcore.h"
-#include "opencv/cv.h"
-#include "opencv/ml.h"
+#include <opencv2/core/core_c.h>
+#include <opencv2/ml.hpp>
 
 #include "people_msgs/PositionMeasurement.h"
 #include "sensor_msgs/LaserScan.h"
@@ -104,19 +103,19 @@ public:
                 case LOADING_POS:
                     foreach(rosbag::MessageInstance const m, view)
                     {
-                        sensor_msgs::LaserScan::ConstPtr s = m.instantiate<sensor_msgs::LaserScan>();
+                        sensor_msgs::LaserScan::Ptr s = m.instantiate<sensor_msgs::LaserScan>();
 
                         if (mask_count_++ < 20) {
-                            mask_.addScan(s);
+                            mask_.addScan(*s);
                         } else {
-                            ScanProcessor processor(s, mask_);
+                            ScanProcessor processor(*s, mask_);
                             processor.splitConnected(connected_thresh_);
                             processor.removeLessThan(5);
 
                             for (list<SampleSet*>::iterator i = processor.getClusters().begin();
                                     i != processor.getClusters().end();
                                     i++)
-                                pos_data_.push_back(calcLegFeatures(*i, s));
+                                pos_data_.push_back(calcLegFeatures(*i, *s));
                         }
                     }
                     break;
@@ -124,38 +123,38 @@ public:
                     mask_count_ = 1000; // effectively disable masking
                     foreach(rosbag::MessageInstance const m, view)
                     {
-                        sensor_msgs::LaserScan::ConstPtr s = m.instantiate<sensor_msgs::LaserScan>();
+                        sensor_msgs::LaserScan::Ptr s = m.instantiate<sensor_msgs::LaserScan>();
 
                         if (mask_count_++ < 20) {
-                            mask_.addScan(s);
+                            mask_.addScan(*s);
                         } else {
-                            ScanProcessor processor(s, mask_);
+                            ScanProcessor processor(*s, mask_);
                             processor.splitConnected(connected_thresh_);
                             processor.removeLessThan(5);
 
                             for (list<SampleSet*>::iterator i = processor.getClusters().begin();
                                     i != processor.getClusters().end();
                                     i++)
-                                neg_data_.push_back(calcLegFeatures(*i, s));
+                                neg_data_.push_back(calcLegFeatures(*i, *s));
                         }
                     }
                     break;
                 case LOADING_TEST:
                     foreach(rosbag::MessageInstance const m, view)
                     {
-                        sensor_msgs::LaserScan::ConstPtr s = m.instantiate<sensor_msgs::LaserScan>();
+                        sensor_msgs::LaserScan::Ptr s = m.instantiate<sensor_msgs::LaserScan>();
 
                         if (mask_count_++ < 20) {
-                            mask_.addScan(s);
+                            mask_.addScan(*s);
                         } else {
-                            ScanProcessor processor(s, mask_);
+                            ScanProcessor processor(*s, mask_);
                             processor.splitConnected(connected_thresh_);
                             processor.removeLessThan(5);
 
                             for (list<SampleSet*>::iterator i = processor.getClusters().begin();
                                     i != processor.getClusters().end();
                                     i++)
-                                test_data_.push_back(calcLegFeatures(*i, s));
+                                test_data_.push_back(calcLegFeatures(*i, *s));
                         }
                     }
                     break;

@@ -23,6 +23,7 @@ find_package(catkin REQUIRED COMPONENTS
         std_srvs
         tf
         visualization_msgs
+        rosbag
 )
 
 ## dynamic reconfigure config
@@ -43,6 +44,7 @@ catkin_package(
         std_msgs
         tf
         visualization_msgs
+        rosbag
 )
 
 include_directories(
@@ -60,6 +62,16 @@ target_link_libraries(leg_detector
    ${catkin_LIBRARIES} ${BFL_LIBRARIES} ${BULLET_LIBRARIES}
 )
 
+add_executable(train_leg_detector
+               src/train_leg_detector.cpp
+               src/laser_processor.cpp
+               src/calc_leg_features.cpp)
+ 
+
+target_link_libraries(train_leg_detector
+   ${catkin_LIBRARIES} ${BFL_LIBRARIES} ${BULLET_LIBRARIES} ${OpenCV_LIBS}
+)
+
 if(CATKIN_ENABLE_TESTING)
   find_package(catkin REQUIRED COMPONENTS roslaunch roslint)
   roslaunch_add_file_check(launch)
@@ -67,11 +79,11 @@ if(CATKIN_ENABLE_TESTING)
   roslint_add_test()
 endif()
 
-install(TARGETS leg_detector
+install(TARGETS leg_detector train_leg_detector
         RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
-install(FILES config/trained_leg_detector.yaml
+install(DIRECTORY config/
         DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/config
 )
 
