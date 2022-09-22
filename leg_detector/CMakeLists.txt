@@ -1,37 +1,28 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.0.2)
 project(leg_detector)
 
-
-find_package(PkgConfig REQUIRED)
-
-# Look for OpenCV
-find_package(OpenCV)
-include_directories( ${OpenCV_INCLUDE_DIRS} )
-
 # look for bfl (Bayesian Filtering Library)
+find_package(PkgConfig REQUIRED)
 pkg_check_modules(BFL REQUIRED orocos-bfl)
-include_directories(${BFL_INCLUDE_DIRS})
 link_directories(${BFL_LIBRARY_DIRS})
 
 # Look for Bullet
 pkg_check_modules(BULLET bullet)
-include_directories(${BULLET_INCLUDE_DIRS})
 
-## Find catkin macros and libraries
 find_package(catkin REQUIRED COMPONENTS
-  roscpp
-  std_msgs
-  geometry_msgs
-  std_srvs
-  sensor_msgs
-  laser_geometry
-  tf
-  visualization_msgs
-  people_msgs
-  people_tracking_filter
-  image_geometry
-  dynamic_reconfigure
-  rosbag
+        dynamic_reconfigure
+        geometry_msgs
+        image_geometry
+        laser_geometry
+        message_filters
+        people_msgs
+        people_tracking_filter
+        roscpp
+        sensor_msgs
+        std_msgs
+        std_srvs
+        tf
+        visualization_msgs
 )
 
 ## dynamic reconfigure config
@@ -39,48 +30,55 @@ generate_dynamic_reconfigure_options(
   cfg/LegDetector.cfg
 )
 
-## Specify additional locations of header files
-include_directories(
-  include ${catkin_INCLUDE_DIRS} ./include/leg_detector
+catkin_package(
+    INCLUDE_DIRS include
+    CATKIN_DEPENDS
+        dynamic_reconfigure
+        geometry_msgs
+        message_filters
+        people_msgs
+        people_tracking_filter
+        roscpp
+        sensor_msgs
+        std_msgs
+        tf
+        visualization_msgs
 )
 
-catkin_package(INCLUDE_DIRS include
-  CATKIN_DEPENDS people_msgs sensor_msgs std_msgs geometry_msgs visualization_msgs)
+include_directories(
+  include ${catkin_INCLUDE_DIRS} ${BFL_INCLUDE_DIRS} ${BULLET_INCLUDE_DIRS}
+)
 
-## Declare a cpp executable
 add_executable(leg_detector
                src/laser_processor.cpp
                src/leg_detector.cpp
                src/calc_leg_features.cpp)
-               
-add_executable(train_leg_detector
-               src/train_leg_detector.cpp
-               src/laser_processor.cpp
-               src/calc_leg_features.cpp)
 
-## Add cmake target dependencies of the executable/library
-add_dependencies(leg_detector ${${PROJECT_NAME}_EXPORTED_TARGETS})
+add_dependencies(leg_detector ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
-## Specify libraries to link a library or executable target against
 target_link_libraries(leg_detector
-   ${catkin_LIBRARIES} ${BFL_LIBRARIES} ${BULLET_LIBRARIES} ${OpenCV_LIBS}
+   ${catkin_LIBRARIES} ${BFL_LIBRARIES} ${BULLET_LIBRARIES}
 )
 
-target_link_libraries(train_leg_detector
-   ${catkin_LIBRARIES} ${BFL_LIBRARIES} ${BULLET_LIBRARIES} ${OpenCV_LIBS}
+if(CATKIN_ENABLE_TESTING)
+  find_package(catkin REQUIRED COMPONENTS roslaunch roslint)
+  roslaunch_add_file_check(launch)
+  roslint_cpp()
+  roslint_add_test()
+endif()
+
+install(TARGETS leg_detector
+        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
-
-install(TARGETS
-    leg_detector
-    train_leg_detector
-    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
-
-install(DIRECTORY config/
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/config
+install(FILES config/trained_leg_detector.yaml
+        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/config
 )
 
 install(DIRECTORY launch/
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+)
+
+install(DIRECTORY include/${PROJECT_NAME}/
+        DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
 )
