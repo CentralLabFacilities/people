@@ -1,7 +1,7 @@
 <launch>
   <arg name="scan" default="/scan_raw" />
   <arg name="fixed_frame" default="base_link" />
-  <arg name="tree" default="tiagoDataSet_Tree" />
+  <arg name="tree" default="rcsim_leg_detector" />
   
   <node pkg="laser_filters" type="scan_to_scan_filter_chain" respawn="true"
       name="laser_filter_legdetect">
