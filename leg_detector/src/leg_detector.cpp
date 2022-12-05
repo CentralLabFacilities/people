@@ -742,10 +742,14 @@ public:
         // Probability is the fuzzy measure of the probability that the second element should be chosen,
         // in opencv2 RTrees had a method predict_prob, but that disapeared in opencv3, this is the
         // substitute.
-        cv::Mat votes;
-        forest->getVotes(tmp_mat, votes, 0);
-        probability = (float)votes.at<int>(1,1) / (float)forest->getRoots().size();
 
+        #if CV_MAJOR_VERSION == 3 && CV_MINOR_VERSION < 3
+          ROS_WARN("CLF Method not supported on OpenCV<3.3.");
+        #else
+          cv::Mat votes;
+          forest->getVotes(tmp_mat, votes, 0);
+          probability = (float)votes.at<int>(1,1) / (float)forest->getRoots().size();
+        #endif
       } else if (prob_method == leg_detector::LegDetector_PULL) {
           // From https://github.com/wg-perception/people/pull/101
          probability = 0.5 + 0.5 *
