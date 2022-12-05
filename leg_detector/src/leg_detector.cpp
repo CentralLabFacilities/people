@@ -69,6 +69,7 @@ static const char* fixed_frame         = "base_footprint";
 
 static double kal_p = 4, kal_q = .002, kal_r = 10;
 static bool use_filter = true;
+static int prob_method = 0;
 
 
 class SavedFeature
@@ -346,6 +347,8 @@ public:
     kal_q                    = config.kalman_q;
     kal_r                    = config.kalman_r;
     use_filter               = config.kalman_on == 1;
+
+    prob_method = config.probability_method;
   }
 
   double distance(std::list<SavedFeature*>::iterator it1,  std::list<SavedFeature*>::iterator it2)
@@ -731,9 +734,26 @@ public:
 
       memcpy(tmp_mat.data, f.data(), f.size()*sizeof(float));
 
-      float probability = 0.5 -
-                          forest->predict(tmp_mat, cv::noArray(), cv::ml::RTrees::PREDICT_SUM) /
-                          forest->getRoots().size();
+      float probability = 0;
+      if(prob_method == leg_detector::LegDetector_CLF) 
+      {
+        // CLF Method 
+
+        // Probability is the fuzzy measure of the probability that the second element should be chosen,
+        // in opencv2 RTrees had a method predict_prob, but that disapeared in opencv3, this is the
+        // substitute.
+        cv::Mat votes;
+        forest->getVotes(tmp_mat, votes, 0);
+        probability = (float)votes.at<int>(1,1) / (float)forest->getRoots().size();
+
+      } else if (prob_method == leg_detector::LegDetector_PULL) {
+          // From https://github.com/wg-perception/people/pull/101
+         probability = 0.5 + 0.5 *
+                          static_cast<float>(forest->predict(tmp_mat, cv::noArray(), cv::ml::RTrees::PREDICT_SUM)) /
+                          static_cast<float>(forest->getRoots().size());
+      } else {
+        ROS_WARN("unknow probability method selected.");
+      }
 
       tf::Stamped<tf::Point> loc((*i)->center(), scan->header.stamp, scan->header.frame_id);
       try
