@@ -1,6 +1,6 @@
 <launch>
   <arg name="scan" default="/scan_raw" />
-  <arg name="fixed_frame" default="base_link" />
+  <arg name="fixed_frame" default="odom" />
   <arg name="tree" default="tiagoDataSet_Tree" />
   
   <node pkg="laser_filters" type="scan_to_scan_filter_chain" respawn="true"
