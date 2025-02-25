@@ -43,6 +43,7 @@
 #include <people_msgs/PositionMeasurement.h>
 #include <people_msgs/PositionMeasurementArray.h>
 #include <sensor_msgs/LaserScan.h>
+#include <std_srvs/SetBool.h>
 
 #include <tf/transform_listener.h>
 #include <tf/message_filter.h>
@@ -263,6 +264,9 @@ public:
   ros::Publisher leg_measurements_pub_;
   ros::Publisher markers_pub_;
 
+  bool enabled_{true};
+  ros::ServiceServer enable_srv_;
+
   dynamic_reconfigure::Server<leg_detector::LegDetectorConfig> server_;
 
   message_filters::Subscriber<people_msgs::PositionMeasurement> people_sub_;
@@ -300,6 +304,8 @@ public:
     leg_measurements_pub_ = nh_.advertise<people_msgs::PositionMeasurementArray>("leg_tracker_measurements", 0);
     people_measurements_pub_ = nh_.advertise<people_msgs::PositionMeasurementArray>("people_tracker_measurements", 0);
     markers_pub_ = nh_.advertise<visualization_msgs::Marker>("visualization_marker", 20);
+    ros::NodeHandle pnh("~");
+    enable_srv_ = pnh.advertiseService("enable", &LegDetector::enable, this);
 
     if (use_seeds_)
     {
@@ -319,6 +325,16 @@ public:
 
   ~LegDetector()
   {
+  }
+
+  bool enable(std_srvs::SetBool::Request& req, std_srvs::SetBool::Response& res) {
+    enabled_ = req.data;
+    res.success = true;
+    if(enabled_) 
+      ROS_INFO("LegDetector Enabled");
+    else
+      ROS_INFO("LegDetector Disabled");
+    return true;
   }
 
   void configure(leg_detector::LegDetectorConfig &config, uint32_t level)
@@ -363,6 +379,7 @@ public:
   // keep this assignment when the distance between them is not too large.
   void peopleCallback(const people_msgs::PositionMeasurement::ConstPtr& people_meas)
   {
+    if(!enabled_) return;
     // If there are no legs, return.
     if (saved_features_.empty())
       return;
@@ -687,6 +704,7 @@ public:
 
   void laserCallback(const sensor_msgs::LaserScan::ConstPtr& scan)
   {
+    if(!enabled_) return;
     laser_processor::ScanProcessor processor(*scan, mask_);
 
     processor.splitConnected(connected_thresh_);
