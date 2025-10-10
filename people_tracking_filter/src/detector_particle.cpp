@@ -66,7 +66,7 @@ void DetectorParticle::initialize(const tf::Vector3& mu, const tf::Vector3& size
 
   BFL::UniformVector uniform_vector(mu, size);
   std::vector<BFL::Sample<tf::Vector3> > prior_samples(num_particles_);
-  uniform_vector.SampleFrom(prior_samples, num_particles_, CHOLESKY, NULL);
+  uniform_vector.SampleFrom(prior_samples, num_particles_, 0, NULL);
   prior_.ListOfSamplesSet(prior_samples);
   filter_ = new BFL::BootstrapFilter<tf::Vector3, tf::Vector3>(&prior_, &prior_, 0, num_particles_ / 4.0);
 

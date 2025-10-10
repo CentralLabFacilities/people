@@ -65,9 +65,9 @@ public:
 
   // Redefinition of pure virtuals
   virtual Probability ProbabilityGet(const tf::Vector3& input) const;
-  bool SampleFrom(vector<Sample<tf::Vector3> >& list_samples, const int num_samples, int method = DEFAULT,
+  bool SampleFrom(vector<Sample<tf::Vector3> >& list_samples, const int num_samples, int method = 0,
                   void * args = NULL) const;
-  virtual bool SampleFrom(Sample<tf::Vector3>& one_sample, int method = DEFAULT, void * args = NULL) const;
+  virtual bool SampleFrom(Sample<tf::Vector3>& one_sample, int method = 0, void * args = NULL) const;
 
   virtual tf::Vector3 ExpectedValueGet() const;
   virtual MatrixWrapper::SymmetricMatrix CovarianceGet() const;
